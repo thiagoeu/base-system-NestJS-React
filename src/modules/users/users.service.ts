@@ -12,6 +12,10 @@ export class UsersService {
     private readonly usersRepository: Repository<User>,
   ) {}
 
+  async findOneByEmail(email: string) {
+    return this.usersRepository.findOneBy({ email });
+  }
+
   async create(createUserDto: CreateUserDto) {
     try {
       const { name, email, password } = createUserDto;
