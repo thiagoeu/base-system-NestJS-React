@@ -5,11 +5,16 @@ import {
   UnauthorizedException,
   Res,
   Req,
+  UseGuards,
+  Get,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import type { Response, Request } from 'express';
 import { ApiBody, ApiCreatedResponse, ApiOperation } from '@nestjs/swagger';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { CurrentUser } from './decorators/current-user.decorator';
+import type { JwtPayloadUser } from 'src/shared/interfaces/jwt-payload-user.type';
 
 @Controller('auth')
 export class AuthController {
@@ -44,7 +49,7 @@ export class AuthController {
       maxAge: 15 * 60 * 1000,
     });
 
-    res.cookie('refresh_token', accessToken, {
+    res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
@@ -89,5 +94,11 @@ export class AuthController {
     res.clearCookie('refresh_token');
 
     return { message: 'Logged out successfully' };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  getMe(@CurrentUser() user: JwtPayloadUser) {
+    return user;
   }
 }
