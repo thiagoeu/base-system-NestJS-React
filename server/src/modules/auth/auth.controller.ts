@@ -11,22 +11,42 @@ import {
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import type { Response, Request } from 'express';
-import { ApiBody, ApiCreatedResponse, ApiOperation } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiCreatedResponse,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 import type { JwtPayloadUser } from 'src/shared/interfaces/jwt-payload-user.type';
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @ApiCreatedResponse({
-    description: 'User created successfully',
-  })
-  @ApiBody({
-    type: LoginDto,
-  })
   @Post('login')
+  @ApiOperation({
+    summary: 'Login do usuário',
+    description:
+      'Autentica o usuário e define os cookies access_token e refresh_token',
+  })
+  @ApiBody({ type: LoginDto })
+  @ApiCreatedResponse({
+    description: 'Login realizado com sucesso',
+    schema: {
+      example: {
+        message: 'Login successful',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Credenciais inválidas',
+  })
   async login(
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) res: Response,
@@ -60,6 +80,24 @@ export class AuthController {
   }
 
   @Post('refresh')
+  @ApiOperation({
+    summary: 'Renovar access token',
+    description:
+      'Gera um novo access token usando o refresh_token armazenado em cookie',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Access token renovado com sucesso',
+    schema: {
+      example: {
+        message: 'Access token refreshed',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Refresh token inválido ou ausente',
+  })
   async refresh(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
@@ -83,6 +121,20 @@ export class AuthController {
   }
 
   @Post('logout')
+  @ApiOperation({
+    summary: 'Logout do usuário',
+    description:
+      'Remove access_token e refresh_token e invalida o refresh token no banco',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Logout realizado com sucesso',
+    schema: {
+      example: {
+        message: 'Logged out successfully',
+      },
+    },
+  })
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const refreshToken = req.cookies?.refresh_token;
 
@@ -98,6 +150,24 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
+  @ApiOperation({
+    summary: 'Usuário autenticado',
+    description: 'Retorna os dados do usuário logado a partir do JWT',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Usuário autenticado',
+    schema: {
+      example: {
+        userId: 'uuid',
+        email: 'user@email.com',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Não autenticado',
+  })
   getMe(@CurrentUser() user: JwtPayloadUser) {
     return user;
   }
