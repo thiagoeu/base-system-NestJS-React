@@ -1,0 +1,8 @@
+{
+  "auth": {
+    "invalidCredentials": "Credenciais inválidas",
+    "unauthorized": "Não autorizado",
+    "loginSuccess": "Login realizado com sucesso",
+    "logoutSuccess": "Logout realizado com sucesso"
+  }
+}

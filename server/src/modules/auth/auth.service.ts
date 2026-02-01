@@ -6,11 +6,14 @@ import { RefreshToken } from './entities/refresh-token.entity';
 import { Repository } from 'typeorm';
 import bcrypt from 'bcrypt';
 
+import { I18nService } from 'nestjs-i18n';
+
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private i18n: I18nService,
 
     @InjectRepository(RefreshToken)
     private refreshTokenRepository: Repository<RefreshToken>,
@@ -53,7 +56,10 @@ export class AuthService {
     };
   }
 
-  async refreshAccessToken(refreshToken: string): Promise<string> {
+  async refreshAccessToken(
+    refreshToken: string,
+    lang?: string,
+  ): Promise<string> {
     try {
       const payload = this.jwtService.verify(refreshToken);
 
@@ -63,13 +69,19 @@ export class AuthService {
       });
 
       if (!storedToken) {
-        throw new UnauthorizedException('Refresh token not found');
+        const msg = await this.i18n.translate('auth.refreshTokenNotFound', {
+          lang,
+        });
+        throw new UnauthorizedException(msg);
       }
 
       const isValid = await bcrypt.compare(refreshToken, storedToken.tokenHash);
 
       if (!isValid) {
-        throw new UnauthorizedException('Invalid refresh token');
+        const msg = await this.i18n.translate('auth.invalidRefreshToken', {
+          lang,
+        });
+        throw new UnauthorizedException(msg);
       }
 
       const newAccessToken = this.jwtService.sign(
@@ -79,7 +91,10 @@ export class AuthService {
 
       return newAccessToken;
     } catch {
-      throw new UnauthorizedException('Invalid or expired refresh token');
+      const msg = await this.i18n.translate('auth.invalidCredentials', {
+        lang: 'pt',
+      });
+      throw new UnauthorizedException(msg);
     }
   }
 
