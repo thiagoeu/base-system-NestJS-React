@@ -1,9 +1,15 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 interface PrivateRoutesProps {
   isAuthenticated: boolean;
 }
 
 export function PrivateRoutes({ isAuthenticated }: PrivateRoutesProps) {
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+  const location = useLocation();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return <Outlet />;
 }

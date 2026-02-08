@@ -65,18 +65,18 @@ export class AuthController {
     res.cookie('access_token', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: 15 * 60 * 1000,
     });
 
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    return { message: 'Login successful' };
+    return { message: 'Login successful', accessToken };
   }
 
   @Post('refresh')
@@ -113,11 +113,11 @@ export class AuthController {
     res.cookie('access_token', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: 15 * 60 * 1000,
     });
 
-    return { message: 'Access token refreshed' };
+    return { message: 'Access token refreshed', accessToken };
   }
 
   @Post('logout')
