@@ -10,22 +10,7 @@ const PublicTest = () => {
         <Link to="/login" style={{ marginRight: "10px" }}>
           Ir para Login
         </Link>
-        <Link to="/">Ir para Home (Privada)</Link>
-      </div>
-
-      <div
-        style={{
-          marginTop: "40px",
-          padding: "15px",
-          backgroundColor: "#f0f0f0",
-          borderRadius: "8px",
-        }}
-      >
-        <h3>Status da API</h3>
-        <p>
-          Você pode usar esta página para validar se o roteamento está
-          funcionando corretamente.
-        </p>
+        <Link to="/home">Ir para Home (Privada)</Link>
       </div>
     </div>
   );
