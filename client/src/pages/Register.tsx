@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
+import { useNavigate, Link } from "react-router-dom"; // Importamos o Link
+import { useAuth } from "../hooks/useAuth"; // Assumindo que seu hook terá o registro
 
 // Importações do shadcn/ui
 import { Button } from "@/components/ui/button";
@@ -17,10 +17,12 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 
-export default function Login() {
+export default function Register() {
   const navigate = useNavigate();
-  const { login, loginLoading } = useAuth();
+  // Aqui mudei para 'registerUser' para diferenciar do login
+  const { register, registerLoading } = useAuth();
 
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -30,13 +32,14 @@ export default function Login() {
     setError("");
 
     try {
-      await login({ email, password });
-      navigate("/home", { replace: true });
+      // Chama a função de registro do seu backend
+      await register({ name, email, password });
+
+      // Geralmente, após registrar, mandamos para o login ou logamos direto
+      navigate("/login", { replace: true });
     } catch (err: any) {
-      // Tenta pegar a mensagem do backend, senão usa a padrão
       setError(
-        err.response?.data?.message ||
-          "Email ou senha inválidos. Tente novamente.",
+        err.response?.data?.message || "Erro ao criar conta. Tente novamente.",
       );
     }
   }
@@ -45,24 +48,34 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold tracking-tight text-center">
-            Login
+          <CardTitle className="text-2xl font-bold tracking-tight">
+            Criar conta
           </CardTitle>
-          <CardDescription className="text-center">
-            Entre com suas credenciais para acessar sua conta
+          <CardDescription>
+            Preencha os dados abaixo para se cadastrar
           </CardDescription>
         </CardHeader>
 
         <form onSubmit={handleSubmit}>
           <CardContent className="grid gap-4">
-            {/* Alerta de Erro */}
             {error && (
               <Alert variant="destructive" className="py-2">
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
 
-            {/* Campo E-mail */}
+            <div className="grid gap-2">
+              <Label htmlFor="name">Nome completo</Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="Seu nome"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </div>
+
             <div className="grid gap-2">
               <Label htmlFor="email">E-mail</Label>
               <Input
@@ -72,53 +85,47 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                autoComplete="email"
               />
             </div>
 
-            {/* Campo Senha */}
             <div className="grid gap-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Senha</Label>
-              </div>
+              <Label htmlFor="password">Senha</Label>
               <Input
                 id="password"
                 type="password"
+                placeholder="Mínimo 6 caracteres"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                autoComplete="current-password"
               />
             </div>
           </CardContent>
 
           <CardFooter className="flex flex-col gap-4">
-            {/* Botão de Entrar */}
             <Button
               type="submit"
               className="w-full mt-3"
-              disabled={loginLoading}
+              disabled={registerLoading}
             >
-              {loginLoading ? (
+              {registerLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Entrando...
+                  Criando conta...
                 </>
               ) : (
-                "Entrar"
+                "Cadastrar"
               )}
             </Button>
 
-            {/* Link para Registro */}
-            <p className="text-sm text-center text-muted-foreground">
-              Ainda não tem uma conta?{" "}
+            <div className="text-sm text-center text-muted-foreground">
+              Já tem uma conta?{" "}
               <Link
-                to="/register"
-                className="text-primary hover:underline font-medium decoration-primary underline-offset-4"
+                to="/login"
+                className="text-primary hover:underline font-medium"
               >
-                Registre-se
+                Fazer login
               </Link>
-            </p>
+            </div>
           </CardFooter>
         </form>
       </Card>

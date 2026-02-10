@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { login, getMe, logout } from "../services/auth.service";
+import { login, getMe, logout } from "../services/auth.service"; // Importe o serviço de registro
+import { create as registerService } from "../services/user.service";
 import { useAuthStore } from "../store/useAuthStore";
 
 export function useAuth() {
@@ -26,6 +27,12 @@ export function useAuth() {
     },
   });
 
+  // NOVA MUTATION DE REGISTRO
+  const registerMutation = useMutation({
+    mutationFn: ({ name, email, password }: any) =>
+      registerService(name, email, password), // Chama aquele serviço que criamos
+  });
+
   const logoutMutation = useMutation({
     mutationFn: logout,
     onSuccess: () => {
@@ -43,5 +50,9 @@ export function useAuth() {
     login: loginMutation.mutateAsync,
     logout: logoutMutation.mutateAsync,
     loginLoading: loginMutation.isPending,
+
+    // Adicione estes dois para o Registro:
+    register: registerMutation.mutateAsync,
+    registerLoading: registerMutation.isPending,
   };
 }

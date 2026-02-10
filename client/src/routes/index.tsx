@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, BrowserRouter } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { PrivateRoutes } from "./privateRoutes";
 import { PublicRoutes } from "./publicRoutes";
 import { useAuth } from "../hooks/useAuth";
@@ -6,6 +6,7 @@ import { useAuth } from "../hooks/useAuth";
 import Login from "../pages/Login";
 import Home from "../pages/Home";
 import PublicTest from "../pages/PublicTest";
+import Register from "@/pages/Register";
 
 export default function AppRoutes() {
   const { isAuthenticated, isLoadingUser, isErrorUser } = useAuth();
@@ -15,6 +16,7 @@ export default function AppRoutes() {
       <Route element={<PublicRoutes isAuthenticated={isAuthenticated} />}>
         <Route path="/login" element={<Login />} />
         <Route path="/teste" element={<PublicTest />} />
+        <Route path="/register" element={<Register />} />
       </Route>
       <Route
         element={
