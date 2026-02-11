@@ -44,6 +44,7 @@ Este projeto utiliza um **fluxo de autenticação seguro e moderno**
 - Apenas **1 refresh token por usuário**
 - Logout invalida completamente a sessão
 - Refresh token nunca é salvo em texto puro
+- teste
 
 ### 🛡️ Proteções
 
