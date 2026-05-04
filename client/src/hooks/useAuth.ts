@@ -30,7 +30,7 @@ export function useAuth() {
   // NOVA MUTATION DE REGISTRO
   const registerMutation = useMutation({
     mutationFn: ({ name, email, password }: any) =>
-      registerService(name, email, password), // Chama aquele serviço que criamos
+      registerService(name, email, password),
   });
 
   const logoutMutation = useMutation({
@@ -50,8 +50,6 @@ export function useAuth() {
     login: loginMutation.mutateAsync,
     logout: logoutMutation.mutateAsync,
     loginLoading: loginMutation.isPending,
-
-    // Adicione estes dois para o Registro:
     register: registerMutation.mutateAsync,
     registerLoading: registerMutation.isPending,
   };
