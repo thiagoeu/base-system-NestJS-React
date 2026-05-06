@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -7,74 +8,111 @@ import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
+import { UserEntity } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
-import { paginate, PaginateQuery, Paginated } from 'nestjs-paginate';
+import { paginate, PaginateQuery, FilterOperator } from 'nestjs-paginate';
 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(User)
-    private readonly usersRepository: Repository<User>,
+    @InjectRepository(UserEntity)
+    private readonly usersRepository: Repository<UserEntity>,
   ) {}
 
   async findOneByEmail(email: string) {
-    return this.usersRepository.findOneBy({ email });
+    try {
+      const user = await this.usersRepository.findOneBy({ email });
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      return user;
+    } catch (error) {
+      throw new BadRequestException('Error to find user');
+    }
   }
 
   async findOneById(id: number) {
-    const user = await this.usersRepository.findOneBy({ id });
-    if (!user) {
-      throw new NotFoundException('User not found');
+    try {
+      const user = await this.usersRepository.findOneBy({ id });
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      return user;
+    } catch (error) {
+      throw new BadRequestException('Error to find user');
     }
-    return user;
   }
 
   async create(createUserDto: CreateUserDto) {
-    const { name, email, password, role } = createUserDto;
+    try {
+      const { name, email, password, role } = createUserDto;
 
-    const existUser = await this.findOneByEmail(email);
+      const existUser = await this.findOneByEmail(email);
 
-    if (existUser) {
-      throw new ConflictException('User already exists');
+      if (existUser) {
+        throw new ConflictException('User already exists');
+      }
+
+      const salt = await bcrypt.genSalt();
+      const hashedPassword = await bcrypt.hash(password, salt);
+
+      const user = this.usersRepository.create({
+        name,
+        email,
+        password: hashedPassword,
+        role,
+      });
+
+      return this.usersRepository.save(user);
+    } catch (error) {
+      throw new BadRequestException('Error to create user');
     }
-
-    const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    const user = this.usersRepository.create({
-      name,
-      email,
-      password: hashedPassword,
-      role,
-    });
-
-    return this.usersRepository.save(user);
   }
 
-  async findAll(query: PaginateQuery): Promise<Paginated<User>> {
-    return paginate(query, this.usersRepository, {
-      sortableColumns: ['id', 'name', 'email', 'role'],
-      searchableColumns: ['name', 'email'],
-      defaultSortBy: [['id', 'ASC']],
-      defaultLimit: 10,
-      maxLimit: 25,
-    });
+  async findAll(query: PaginateQuery): Promise<UserEntity[]> {
+    try {
+      const result = await paginate<UserEntity>(query, this.usersRepository, {
+        sortableColumns: ['id', 'name', 'email', 'role'],
+        filterableColumns: {
+          id: [FilterOperator.EQ, FilterOperator.ILIKE],
+          name: [FilterOperator.EQ, FilterOperator.ILIKE],
+          email: [FilterOperator.EQ, FilterOperator.ILIKE],
+          role: [FilterOperator.EQ, FilterOperator.ILIKE],
+        },
+        searchableColumns: ['name', 'email'],
+        defaultSortBy: [['name', 'ASC']],
+        defaultLimit: 10,
+        maxLimit: 25,
+      });
+
+      return result.data;
+    } catch (error) {
+      throw new BadRequestException('Error to list users');
+    }
   }
 
   async remove(id: number) {
-    const user = await this.findOneById(id);
-    return this.usersRepository.remove(user);
+    try {
+      const user = await this.findOneById(id);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      return this.usersRepository.remove(user);
+    } catch (error) {
+      throw new BadRequestException('Error to remove user');
+    }
   }
 
   async update(updateUserDto: UpdateUserDto) {
-    const { id, ...updateData } = updateUserDto;
-
-    if (updateData.password) {
-      const salt = await bcrypt.genSalt();
-      updateData.password = await bcrypt.hash(updateData.password, salt);
+    try {
+      const { id, ...updateData } = updateUserDto;
+      if (updateData.password) {
+        const salt = await bcrypt.genSalt();
+        updateData.password = await bcrypt.hash(updateData.password, salt);
+      }
+      return this.usersRepository.update(id, updateData);
+    } catch (error) {
+      throw new BadRequestException('Error to update user');
     }
-
-    return this.usersRepository.update(id, updateData);
   }
 }

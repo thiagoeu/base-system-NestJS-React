@@ -3,7 +3,7 @@ import { BaseEntity } from 'src/shared/entities/base.entity';
 import { Roles } from 'src/shared/enum/roles.enum';
 
 @Entity('users')
-export class User extends BaseEntity {
+export class UserEntity extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
